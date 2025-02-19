@@ -1,4 +1,5 @@
 import os
+import weave
 from fastapi import FastAPI
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -18,6 +19,8 @@ google_client = AsyncOpenAI(
     api_key=os.getenv("GOOGLE_API_KEY"),
     base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
 )
+
+weave.init(f"{os.getenv('WEAVE_TEAM')}/{os.getenv('WEAVE_PROJECT_ID')}")
 
 
 class CompletionRequest(BaseModel):
@@ -39,9 +42,15 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
 async def read_index():
-    return FileResponse("templates/index.html")
+    html_content = Path("templates/index.html").read_text()
+    modified_html = html_content.replace(
+        "weave-team-id/weave-project-id",
+        f"{os.getenv('WEAVE_TEAM')}/{os.getenv('WEAVE_PROJECT_ID')}",
+    )
+    return StreamingResponse(iter([modified_html]), media_type="text/html")
 
 
+@weave.op()
 @app.post("/google/completion")
 async def completion(request: ChatCompletionRequest):
     async def generate_response():
@@ -65,6 +74,7 @@ async def completion(request: ChatCompletionRequest):
     return StreamingResponse(generate_response(), media_type="text/event-stream")
 
 
+@weave.op()
 @app.post("/openai/completion")
 async def completion(request: ChatCompletionRequest):
     async def generate_response():
