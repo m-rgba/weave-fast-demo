@@ -1,0 +1,17 @@
+services:
+
+  weave_fast_demo:
+    build: .
+    container_name: weave_fast_demo
+    ports:
+      - 127.0.0.1:8000:8000
+    env_file:
+      - .env
+    volumes:
+      - .:/workspace
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      start_period: 5s
+      interval: 1m
+      timeout: 10s
+      retries: 3

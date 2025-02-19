@@ -1,0 +1,5 @@
+fastapi==0.115.8
+openai==1.63.2
+uvicorn==0.34.0
+wandb==0.19.6
+weave==0.51.33
